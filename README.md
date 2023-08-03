@@ -6,4 +6,6 @@
 В директории tests расположены все тесты.
 В директории screenshots сохраняются скриншоты упавших тестов.
 
-Для того, чтобы начать работу необходимо ввести pip install -r 
+Для того, чтобы начать работу на windows, необходимо ввести pip install -r requirements.txt в консоль, чтобы скачать все необходимые зависимости.
+Пример команды для запуска тестов 
+pytest --driver Chrome --driver-path \driver\chromedriver.exe tests\test_smoke.py
