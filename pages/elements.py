@@ -1,6 +1,5 @@
 import time
 from termcolor import colored
-
 from selenium.webdriver import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -15,15 +14,15 @@ class WebElement(object):
     _timeout = 10
     _wait_after_click = False  # TODO: how we can wait after click?
 
-    def __init__(self, timeout=10, wait_after_click=False, **kwargs): # **kwargs - можем передавать любые значения, как элементы по локаторм
+    def __init__(self, timeout=10, wait_after_click=False, **kwargs): # ожидание после клика, **kwargs - можем передавать любые значения, как элементы по локаторм
         self._timeout = timeout
         self._wait_after_click = wait_after_click
 
-        for attr in kwargs:
+        for attr in kwargs: #все что в kwargs - любые элементы по локаторам. Напр (str(ID),(str(значение)) By.ID, "password"
             self._locator = (str(attr).replace('_', ' '), str(kwargs.get(attr)))
 
     def find(self, timeout=10):
-        """ Find element on the page. """
+        """ Find element on the page. """ #найти элемент
 
         element = None
 
@@ -37,7 +36,7 @@ class WebElement(object):
         return element
 
     def wait_to_be_clickable(self, timeout=10, check_visibility=True):
-        """ Wait until the element will be ready for click. """
+        """ Wait until the element will be ready for click. """ #ждать пока элем не будет доступен для клика
 
         element = None
 
@@ -54,19 +53,19 @@ class WebElement(object):
         return element
 
     def is_clickable(self):
-        """ Check is element ready for click or not. """
+        """ Check is element ready for click or not. """ #доступен ли элемент для клика
 
         element = self.wait_to_be_clickable(timeout=0.1)
         return element is not None
 
     def is_presented(self):
-        """ Check that element is presented on the page. """
+        """ Check that element is presented on the page. """ #находится ли элемент на стр
 
         element = self.find(timeout=0.1)
         return element is not None
 
     def is_visible(self):
-        """ Check is the element visible or not. """
+        """ Check is the element visible or not. """ #виден ли элем
 
         element = self.find(timeout=0.1)
 
@@ -75,7 +74,7 @@ class WebElement(object):
 
         return False
 
-    def wait_until_not_visible(self, timeout=10):
+    def wait_until_not_visible(self, timeout=10): #ожидать пока элем не будет виден на стр
 
         element = None
 
@@ -104,8 +103,9 @@ class WebElement(object):
 
         return element
 
+
     def send_keys(self, keys, wait=2):
-        """ Send keys to the element. """
+        """ Send keys to the element. """ #передать текст полю
 
         keys = keys.replace('\n', '\ue007')
 
@@ -120,8 +120,15 @@ class WebElement(object):
             msg = 'Element with locator {0} not found'
             raise AttributeError(msg.format(self._locator))
 
+    def input_clear(self): #очистить поле ввода
+        element = self.find()
+        if element:
+            element.click()
+            element.clear()
+
+
     def get_text(self):
-        """ Get text of the element. """
+        """ Get text of the element. """ #получить текст элемента
 
         element = self.find()
         text = ''
@@ -134,15 +141,17 @@ class WebElement(object):
         return text
 
     def get_attribute(self, attr_name):
-        """ Get attribute of the element. """
+        """ Get attribute of the element. """ #получть атрибут элемента
 
         element = self.find()
 
         if element:
             return element.get_attribute(attr_name)
 
+
+
     def _set_value(self, web_driver, value, clear=True):
-        """ Set value to the input element. """
+        """ Set value to the input element. """ #для работы с текстовыми полями
 
         element = self.find()
 
@@ -152,7 +161,7 @@ class WebElement(object):
         element.send_keys(value)
 
     def click(self, hold_seconds=0, x_offset=1, y_offset=1):
-        """ Wait and click the element. """
+        """ Wait and click the element. """ #нажать на элемент, когда он будет доступен для клика
 
         element = self.wait_to_be_clickable()
 
@@ -168,7 +177,7 @@ class WebElement(object):
             self._page.wait_page_loaded()
 
     def right_mouse_click(self, x_offset=0, y_offset=0, hold_seconds=0):
-        """ Click right mouse button on the element. """
+        """ Click right mouse button on the element. """ #нажать прав кнопку мыши на элемент
 
         element = self.wait_to_be_clickable()
 
@@ -181,7 +190,7 @@ class WebElement(object):
             raise AttributeError(msg.format(self._locator))
 
     def highlight_and_make_screenshot(self, file_name='element.png'):
-        """ Highlight element and make the screen-shot of all page. """
+        """ Highlight element and make the screen-shot of all page. """ #подсветить элемент и сделать скриншот
 
         element = self.find()
 
@@ -195,7 +204,7 @@ class WebElement(object):
         self._web_driver.save_screenshot(file_name)
 
     def scroll_to_element(self):
-        """ Scroll page to the element. """
+        """ Scroll page to the element. """ #скролл до элемента
 
         element = self.find()
 
@@ -210,15 +219,21 @@ class WebElement(object):
             pass  # Just ignore the error if we can't send the keys to the element
 
     def delete(self):
-        """ Deletes element from the page. """
+        """ Deletes element from the page. """ #удалить элемент со страницы (баннеры, скидки итд)
 
         element = self.find()
 
         # Delete element:
         self._web_driver.execute_script("arguments[0].remove();", element)
 
+    def enter_element(self):
+        """ Press enter on the element. """ #нажать enter на элементе
 
-class ManyWebElements(WebElement):
+        element = self.find()
+        element.send_keys(Keys.ENTER)
+
+
+class ManyWebElements(WebElement): #все те же методы, но для мн.ч элементов
 
     def __getitem__(self, item):
         """ Get list of elements and try to return required element. """
@@ -302,3 +317,5 @@ class ManyWebElements(WebElement):
     def cntrlv(self):
         action = ActionChains(self._web_driver)
         action.key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
+
+

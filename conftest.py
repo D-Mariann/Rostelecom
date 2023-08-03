@@ -3,6 +3,8 @@ import allure
 import uuid
 import pickle
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+
 from pages.auth_page import AuthPage
 
 # @pytest.fixture
@@ -22,19 +24,16 @@ from pages.auth_page import AuthPage
 
 @pytest.fixture
 def driver():
-    driver = webdriver.Chrome(executable_path='\driver\chromedriver.exe')
 
-    # Можно задавать нужный вам размер экрана
+    s = Service('\driver\chromedriver.exe')
+    driver = webdriver.Chrome(service=s)
     # driver.set_window_size(1080, 800)
-
     driver.maximize_window()
     return driver
 
 
 @pytest.fixture
 def web_browser(request, driver): #передаем сюда каждый тесткейс, вызывается до тесткейса
-    #
-
     browser = driver
     # browser.set_window_size(1400, 1000)
 
@@ -76,7 +75,8 @@ def chrome_options(chrome_options):
     # chrome_options.add_argument('--headless')
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--log-level=DEBUG')
-
+    chrome_options.add_argument('--ignore-certificate-errors')
+    chrome_options.add_argument('--ignore-ssl-errors')
     return chrome_options
 
 

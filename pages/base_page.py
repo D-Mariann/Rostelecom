@@ -1,33 +1,27 @@
 from urllib.parse import urlparse
-from selenium import webdriver
-
 import json
 import time
 from termcolor import colored
-
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 
-# class BasePage(object):
-#     # конструктор класса - специальный метод с ключевым словом __init__
-#     # Нам нужны объект веб-драйвера, адрес страницы и время ожидани элементов
-#     def __init__(self, driver, url, timeout=10):
-#         self.driver = driver
-#         self.url = url
-#         self.driver.implicitly_wait(timeout)
-#
-#
-#     def get_relative_link(self):
-#         url = urlparse(self.driver.current_url)
-#         return url.path
+class BasePage(object):
+    def __init__(self, driver, url, timeout=10):
+        self.driver = driver
+        self.url = url
+        self.driver.implicitly_wait(timeout)
+
+    def get_relative_link(self):
+        url = urlparse(self.driver.current_url)
+        return url.path
+
 
 
 class WebPage(object):
 
     _web_driver = None
-    # _web_driver = webdriver.Chrome('drivers\chromedriver.exe')
 
     def __init__(self, web_driver, url=''):
         self._web_driver = web_driver
@@ -52,11 +46,11 @@ class WebPage(object):
         self._web_driver.get(url)
         self.wait_page_loaded()
 
-    def go_back(self):
+    def go_back(self): #назад
         self._web_driver.back()
         self.wait_page_loaded()
 
-    def refresh(self):
+    def refresh(self): #обновить стр
         self._web_driver.refresh()
         self.wait_page_loaded()
 
@@ -90,12 +84,16 @@ class WebPage(object):
         """ Cancel iframe focus. """
         self._web_driver.switch_to.default_content()
 
-    def get_current_url(self):
+    def get_current_url(self): #посмотреть текущий url
         """ Returns current browser URL. """
 
         return self._web_driver.current_url
 
-    def get_page_source(self):
+    def get_relative_link(self): #посмотреть путь url
+        url = urlparse(self._web_driver.current_url)
+        return url.path
+
+    def get_page_source(self): #получить исх код стр
         """ Returns current page body. """
 
         source = ''
@@ -106,7 +104,7 @@ class WebPage(object):
 
         return source
 
-    def check_js_errors(self, ignore_list=None):
+    def check_js_errors(self, ignore_list=None): #проверить, существуют ли JS ошибки
         """ This function checks JS errors on the page. """
 
         ignore_list = ignore_list or []
@@ -122,10 +120,10 @@ class WebPage(object):
 
                 assert ignore, 'JS error "{0}" on the page!'.format(log_message)
 
-    def wait_page_loaded(self, timeout=60, check_js_complete=True,
+    def wait_page_loaded(self, timeout=60, check_js_complete=True, #дождаться, когда стр полностью загрузится
                          check_page_changes=False, check_images=False,
                          wait_for_element=None,
-                         wait_for_xpath_to_disappear='',
+                         wait_for_xpath_to_disappear='', #когда крутящицся шарик загрузки исчезнет
                          sleep_time=2):
         """ This function waits until the page will be completely loaded.
             We use many different ways to detect is page loaded or not:
@@ -152,7 +150,7 @@ class WebPage(object):
             pass
 
         # Wait until page loaded (and scroll it, to make sure all objects will be loaded):
-        while not page_loaded:
+        while not page_loaded: #если страница не загрузится за 60 сек
             time.sleep(0.5)
             k += 1
 
@@ -206,16 +204,22 @@ class WebPage(object):
         # Go up:
         self._web_driver.execute_script('window.scrollTo(document.body.scrollHeight, 0);')
 
-    def wait_for_animation(self, selector):
+    def wait_for_animation(self, selector): #Ожидает завершения анимации
         """
         Waits until jQuery animations have finished for the given jQuery  selector.
         """
         WebDriverWait(self._web_driver, 10).until(lambda driver: driver.execute_script(
             'return jQuery(%s).is(":animated")' % json.dumps(selector)) == False)
 
-    def wait_for_ajax_loading(self, class_name):
+    def wait_for_ajax_loading(self, class_name): #Ожидает, пока индикатор загрузки ajax не исчезнет
         """
         Waits until the ajax loading indicator disappears.
         """
         WebDriverWait(self._web_driver, 10).until(lambda driver: len(driver.find_elements(By.CLASS_NAME,
                                                                                           class_name)) == 0)
+    def window_handler(self):
+        for handle in self._web_driver.window_handles:
+            self._web_driver.switch_to.window(handle)
+
+    def parent_window(self):
+        self._web_driver.switch_to.parent_frame()
